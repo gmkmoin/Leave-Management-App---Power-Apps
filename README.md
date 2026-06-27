@@ -11,33 +11,33 @@
 <img width="1044" height="575" alt="Screenshot 2026-06-28 011820" src="https://github.com/user-attachments/assets/ba881e12-d6e6-4e46-abfa-bd8bba02105f" />
 <img width="1919" height="923" alt="Screenshot 2026-06-28 011739" src="https://github.com/user-attachments/assets/356c7eef-1780-4316-8456-b307b090af4c" />
 
-🏖️ Leave Management App
-📖 Overview
+**🏖️ Leave Management App\
+📖 Overview**\
 
-The Leave Management App is a comprehensive employee leave request system built entirely using the Microsoft Power Platform. It modernizes and streamlines the leave approval process by replacing manual email-based workflows with a centralized, automated solution.
+The Leave Management App is a comprehensive employee leave request system built entirely using the Microsoft Power Platform. It modernizes and streamlines the leave approval process by replacing manual email-based workflows with a centralized, automated solution.\
 
-The application provides role-based experiences for employees, managers, and HR, making leave requests, approvals, and tracking simple and efficient.
+The application provides role-based experiences for employees, managers, and HR, making leave requests, approvals, and tracking simple and efficient.\
 
-🎯 Purpose
+**🎯 Purpose**\
 
-Organizations often rely on lengthy email conversations and manual record keeping to manage employee leave requests. This application eliminates those challenges by providing:
+Organizations often rely on lengthy email conversations and manual record keeping to manage employee leave requests. This application eliminates those challenges by providing:\
 
-📌 A centralized leave request portal
-⚙️ Automated approval workflows
-📊 Real-time request tracking
-📝 Complete audit history
-👥 Role-based dashboards for Employees, Managers, and HR
-👨‍💼 Employee Experience
+📌 A centralized leave request portal\
+⚙️ Automated approval workflows\
+📊 Real-time request tracking\
+📝 Complete audit history\
+👥 Role-based dashboards for Employees, Managers, and HR\
+👨‍💼 Employee Experience\
 
-Employees can:
+**Employees can:**\
 
-Submit new leave requests
-Select leave type (Vacation, Sick Leave, Annual Leave, etc.)
-Choose leave start and end dates
-Add request details
-Track request status in real time
-View previous leave requests and approval history
-👩‍💼 Manager & HR Experience
+Submit new leave requests\
+Select leave type (Vacation, Sick Leave, Annual Leave, etc.)\
+Choose leave start and end dates\
+Add request details\
+Track request status in real time\
+View previous leave requests and approval history\
+👩‍💼 Manager & HR Experience\
 
 Managers and HR personnel have access to a dedicated approval dashboard where they can:
 
@@ -50,14 +50,12 @@ Monitor approval history
 
 The application follows a structured two-level approval workflow.
 
-**Stage 1 – Direct Manager**
-
+**Stage 1 – Direct Manager**\
 Employee submits a leave request.
 The request is automatically routed to the assigned manager.
 The manager reviews and approves or rejects the request.
 
-**Stage 2 – Human Resources**
-
+**Stage 2 – Human Resources**\
 If the manager approves the request, it is automatically forwarded to HR.
 HR performs the final review.
 Once approved, the leave request is finalized and recorded.
@@ -71,80 +69,77 @@ The request status is updated accordingly.
 
 The backend automation is powered by a custom flow named Leave Request Approval Flow.
 
-**Workflow Features**
+**Workflow Features**\
+Automatically triggers when a new leave request is created.\
+Routes requests to the employee's manager.\
+Sends approved requests to HR.\
+Updates request status automatically.\
+Sends email notifications throughout the process.\
+Records approval comments from every approval stage.\
+Interactive Approval Emails\
 
-Automatically triggers when a new leave request is created.
-Routes requests to the employee's manager.
-Sends approved requests to HR.
-Updates request status automatically.
-Sends email notifications throughout the process.
-Records approval comments from every approval stage.
-Interactive Approval Emails
+**Managers and HR receive actionable emails containing:**\
 
-Managers and HR receive actionable emails containing:
+Employee Name\
+Leave Type\
+Leave Dates\
+Request Details\
 
-Employee Name
-Leave Type
-Leave Dates
-Request Details
+**Approvers can:**\
 
-Approvers can:
+✅ Approve\
+❌ Reject\
+💬 Add mandatory comments without opening the Power Apps application.\
 
-✅ Approve
-❌ Reject
-💬 Add mandatory comments
+**🗄️ SharePoint Integration**\
 
-without opening the Power Apps application.
+The application uses a SharePoint list named Leave Request within the HR Process site as its backend database.\
 
-🗄️ SharePoint Integration
-
-The application uses a SharePoint list named Leave Request within the HR Process site as its backend database.
-
-Stored Information
+**Stored Information**\
 
 Each request stores:
 
-Employee Name
-Title
-Leave Details
-Leave Type
-Start Date
-End Date
-Manager
-HR Representative
-Current Status
-Approval Comments
-Live Status Tracking
+Employee Name\
+Title\
+Leave Details\
+Leave Type\
+Start Date\
+End Date\
+Manager\
+HR Representative\
+Current Status\
+Approval Comments\
+Live Status Tracking\
 
-The Status column updates automatically during the workflow:
+The Status column updates automatically during the workflow:\
 
-Pending Manager Approval
-Pending HR Approval
-Approved
-Declined
-Audit Trail
+Pending Manager Approval\
+Pending HR Approval\
+Approved\
+Declined\
+Audit Trail\
 
-Every approval is securely logged with:
+Every approval is securely logged with:\
 
-Approver Name
-Decision
-Timestamp
-Approval Comments
+Approver Name\
+Decision\
+Timestamp\
+Approval Comments\
 
-This creates a complete audit history for every leave request.
+This creates a complete audit history for every leave request.\
 
-🚀 Built With
-Power Apps – Frontend user interface and dashboards
-Power Automate – Approval workflows and automated email notifications
-SharePoint – Backend data storage, live status tracking, and audit logging
+**🚀 Built With**\
+Power Apps – Frontend user interface and dashboards\
+Power Automate – Approval workflows and automated email notifications\
+SharePoint – Backend data storage, live status tracking, and audit logging\
 
-✨ Key Features
-Employee self-service leave requests
-Manager and HR approval dashboards
-Two-stage approval workflow
-Automated email notifications
-Interactive approval emails
-Real-time leave status tracking
-SharePoint integration
-Complete approval audit trail
-Built entirely on the Microsoft Power Platform
+**✨ Key Features**\
+Employee self-service leave requests\
+Manager and HR approval dashboards\
+Two-stage approval workflow\
+Automated email notifications\
+Interactive approval emails\
+Real-time leave status tracking\
+SharePoint integration\
+Complete approval audit trail\
+Built entirely on the Microsoft Power Platform\
