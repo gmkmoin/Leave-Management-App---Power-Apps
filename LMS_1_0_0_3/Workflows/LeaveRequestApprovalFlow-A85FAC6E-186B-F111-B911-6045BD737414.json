@@ -1,0 +1,400 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_cfbf2"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_approvals": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedapprovals_c960f"
+        },
+        "api": {
+          "name": "shared_approvals"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created": {
+          "recurrence": {
+            "interval": 5,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "fdad8db2-baaf-436e-b5ac-aeb33d10eacb"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnNewItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+              "table": "db34e351-4107-47d0-bee5-5a363f3937d5"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Update_item": {
+          "runAfter": {
+            "Manager_Approval": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "82f9c0f8-5737-4294-92b0-0952fdbaf5f8"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "PatchItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+              "table": "db34e351-4107-47d0-bee5-5a363f3937d5",
+              "id": "@triggerBody()?['ID']",
+              "item/Title": "@triggerBody()?['Title']",
+              "item/Status/Value": "Pending Manager Approval",
+              "item/ApprovalLink": "Test"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Manager_Approval": {
+          "runAfter": {
+            "HREmail": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "85223cae-1b9f-478d-9d6b-da20d3f2c8f8"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_approvals",
+              "operationId": "CreateAnApproval",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+            },
+            "parameters": {
+              "approvalType": "Basic",
+              "ApprovalCreationInput/title": "Leave Request - @{triggerBody()?['Title']}",
+              "ApprovalCreationInput/assignedTo": "@outputs('ManagerEmail')",
+              "ApprovalCreationInput/details": "@{triggerBody()?['Title']}\n@{triggerBody()?['LeaveType/Value']}",
+              "ApprovalCreationInput/itemLink": "@triggerBody()?['{Link}']",
+              "ApprovalCreationInput/itemLinkDescription": "@triggerBody()?['Title']",
+              "ApprovalCreationInput/requestor": "@triggerBody()?['Author/Email']",
+              "ApprovalCreationInput/enableNotifications": true,
+              "ApprovalCreationInput/enableReassignment": true
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Wait_for_an_approval": {
+          "runAfter": {
+            "Update_item": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b5c30fdd-ed3f-4ddb-8e61-452a0c92ff45"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_approvals",
+              "operationId": "WaitForAnApproval",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+            },
+            "parameters": {
+              "approvalName": "@outputs('Manager_Approval')?['body/name']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition": {
+          "actions": {
+            "For_each": {
+              "foreach": "@outputs('Wait_for_an_approval')?['body/responses']",
+              "actions": {
+                "HR_Approval": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "fcea36d5-f4b6-4d13-a9d1-70903842971b"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_approvals",
+                      "operationId": "CreateAnApproval",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+                    },
+                    "parameters": {
+                      "approvalType": "Basic",
+                      "ApprovalCreationInput/title": "Leave Request HR Approval - @{triggerOutputs()?['body/Title']}",
+                      "ApprovalCreationInput/assignedTo": "@triggerOutputs()?['body/HR/Email']",
+                      "ApprovalCreationInput/details": "@{triggerOutputs()?['body/Title']}\n@{triggerOutputs()?['body/LeaveType/Value']}",
+                      "ApprovalCreationInput/enableNotifications": true,
+                      "ApprovalCreationInput/enableReassignment": true
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Manager_Approved": {
+                  "runAfter": {
+                    "HR_Approval": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "326b606d-7be0-4987-9c71-d55527269f60"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "PatchItem",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+                      "table": "db34e351-4107-47d0-bee5-5a363f3937d5",
+                      "id": "@triggerBody()?['ID']",
+                      "item/Title": "@triggerBody()?['Title']",
+                      "item/Status/Value": "Pending HR Approval",
+                      "item/ApprovalComment": "✅Approved By Manager (@{items('For_each')?['responder/displayName']}) : \n@{items('For_each')?['comments']}",
+                      "item/ApprovalLink": "@outputs('HR_Approval')?['body/respondLink']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Wait_for_HR_Approval": {
+                  "runAfter": {
+                    "Manager_Approved": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "742a5d66-69fc-46a9-a14b-18bec1b17d9c"
+                  },
+                  "type": "OpenApiConnectionWebhook",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_approvals",
+                      "operationId": "WaitForAnApproval",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+                    },
+                    "parameters": {
+                      "approvalName": "@outputs('HR_Approval')?['body/name']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Condition_2": {
+                  "actions": {
+                    "Apply_to_each": {
+                      "foreach": "@outputs('Wait_for_HR_Approval')?['body/responses']",
+                      "actions": {
+                        "Update_item_2": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "c3e460d9-3752-456e-95bd-52333acc730f"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_sharepointonline",
+                              "operationId": "PatchItem",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                            },
+                            "parameters": {
+                              "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+                              "table": "db34e351-4107-47d0-bee5-5a363f3937d5",
+                              "id": "@triggerOutputs()?['body/ID']",
+                              "item/Title": "@triggerOutputs()?['body/Title']",
+                              "item/Status/Value": "Approved",
+                              "item/HR/Claims": "sara@Diceroll.onmicrosoft.com",
+                              "item/ApprovalComment": "✅ Approved By HR (@{items('Apply_to_each')?['responder/displayName']}) : @{items('Apply_to_each')?['comments']}\n\n@{outputs('Manager_Approved')?['body/ApprovalComment']}"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "cfc8545d-15c3-443a-b856-b1dc27df5b93"
+                      },
+                      "type": "Foreach"
+                    }
+                  },
+                  "runAfter": {
+                    "Wait_for_HR_Approval": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Apply_to_each_2": {
+                        "foreach": "@outputs('Wait_for_HR_Approval')?['body/responses']",
+                        "actions": {
+                          "Update_item_3": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "22f23713-4ea4-4ed2-a5ae-870cf7f11931"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_sharepointonline",
+                                "operationId": "PatchItem",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                              },
+                              "parameters": {
+                                "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+                                "table": "db34e351-4107-47d0-bee5-5a363f3937d5",
+                                "id": "@triggerOutputs()?['body/ID']",
+                                "item/Title": "@triggerOutputs()?['body/Title']",
+                                "item/Status/Value": "Declined",
+                                "item/ApprovalComment": "❌ Rejected By HR (@{items('Apply_to_each_2')?['responder/displayName']}) : @{items('Apply_to_each_2')?['comments']}\n\n@{outputs('Manager_Approved')?['body/ApprovalComment']}"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        },
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "a5963045-e4dd-4c3f-916d-ab252e58cde5"
+                        },
+                        "type": "Foreach"
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@outputs('Wait_for_HR_Approval')?['body/outcome']",
+                      "Approve"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e3797e9a-1ba8-4fcf-b9e5-5f9ba1991586"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "74c92e83-3838-47bf-b152-c0131c598d07"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "Wait_for_an_approval": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "For_each_1": {
+                "foreach": "@outputs('Wait_for_an_approval')?['body/responses']",
+                "actions": {
+                  "Manager_Rejected": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "d9b36c23-8ae9-46e5-9bf9-6ed3dd3c5bd3"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_sharepointonline",
+                        "operationId": "PatchItem",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                      },
+                      "parameters": {
+                        "dataset": "https://diceroll.sharepoint.com/sites/HRProcess",
+                        "table": "db34e351-4107-47d0-bee5-5a363f3937d5",
+                        "id": "@triggerBody()?['ID']",
+                        "item/Title": "@triggerBody()?['Title']",
+                        "item/Status/Value": "Declined",
+                        "item/ApprovalComment": "❌ Rejected By Manager (@{items('For_each_1')?['responder/displayName']}) : \n@{items('For_each_1')?['comments']}"
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                },
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "bbd8c492-6623-4948-9a30-9a23f57dab3c"
+                },
+                "type": "Foreach"
+              }
+            }
+          },
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@outputs('Wait_for_an_approval')?['body/outcome']",
+                  "Approve"
+                ]
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d80e5cc2-1fec-499f-bf9f-a6a0df759efc"
+          },
+          "type": "If"
+        },
+        "ManagerEmail": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "61a4ef4a-3004-4370-bde0-3f72cfa7f823"
+          },
+          "type": "Compose",
+          "inputs": "@triggerOutputs()?['body/Manager/Email']"
+        },
+        "HREmail": {
+          "runAfter": {
+            "ManagerEmail": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2657892a-cd5c-4041-8fc5-bfaeae11f22a"
+          },
+          "type": "Compose",
+          "inputs": "@triggerOutputs()?['body/HR/Email']"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
