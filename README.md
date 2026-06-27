@@ -51,11 +51,13 @@ Monitor approval history
 The application follows a structured two-level approval workflow.
 
 **Stage 1 – Direct Manager**
+
 Employee submits a leave request.
 The request is automatically routed to the assigned manager.
 The manager reviews and approves or rejects the request.
 
 **Stage 2 – Human Resources**
+
 If the manager approves the request, it is automatically forwarded to HR.
 HR performs the final review.
 Once approved, the leave request is finalized and recorded.
@@ -70,6 +72,7 @@ The request status is updated accordingly.
 The backend automation is powered by a custom flow named Leave Request Approval Flow.
 
 **Workflow Features**
+
 Automatically triggers when a new leave request is created.
 Routes requests to the employee's manager.
 Sends approved requests to HR.
